@@ -40,10 +40,17 @@ jobs:
     - name: Deploy SST to QA
       run: npx sst deploy --stage qa
     
-    # -name: Get computr role 
-    #   run: jq -r '.Resources.ComputeRole.Properties.Arn' .sst/stacks/output.json > output.txt
+    - name: Extract ARN and set as output
+      id: get-arn
+      run: |
+        ARN=$(jq -r '.stack.computeRole.arn' .sst/output.json)
+        echo "compute_role_arn=$ARN" >> $GITHUB_OUTPUT
+
+    - name: Set compute role ARN as environment variable
+      run: echo "COMPUTE_ROLE_ARN=${{ steps.get-arn.outputs.compute_role_arn }}" >> $GITHUB_ENV
+
     - name: Update Amplify App with compute role
       run: |
-        aws amplify update-app \
-          --app-id d1elq7oppdpwa6 \
-          --compute-role-arn arn:aws:iam::389555019183:role/compute-role
+          aws amplify update-app \
+            --app-id d1elq7oppdpwa6 \
+            --iam-service-role-arn ${{ steps.get-arn.outputs.compute_role_arn }}
