@@ -53,4 +53,4 @@ jobs:
       run: |
           aws amplify update-app \
             --app-id d1elq7oppdpwa6 \
-            --iam-service-role-arn ${{ steps.get-arn.outputs.compute_role_arn }}
+            --compute-role-arn ${{ steps.get-arn.outputs.compute_role_arn }}
