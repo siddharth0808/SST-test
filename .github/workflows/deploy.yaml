@@ -38,12 +38,12 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Deploy SST to QA
-      run: npx sst deploy --stage qa --print-logs
+      run: npx sst deploy --stage qa
     
     - name: Extract ARN and set as output
       id: get-arn
       run: |
-        ARN=$(jq -r '.stack.computeRole.arn' .sst/output.json)
+        ARN=$(jq -r '.stack.computeRole.arn' .sst/outputs.json)
         echo "compute_role_arn=$ARN" >> $GITHUB_OUTPUT
 
     - name: Set compute role ARN as environment variable
