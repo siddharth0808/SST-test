@@ -38,7 +38,7 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
 
     - name: Deploy SST to QA
-      run: npx sst deploy --stage qa
+      run: npx sst deploy --stage qa --print-logs
     
     - name: Extract ARN and set as output
       id: get-arn
