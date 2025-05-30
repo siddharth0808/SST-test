@@ -1,54 +1,60 @@
-import { Resource } from "sst";
-
-console.log("resource stage:", Resource); 
-let usersTable :any//sst.aws.Dynamo.get(`Users-${process.env.STAGE}`, `Users-${process.env.STAGE}`);
-let sessionsTable :any//sst.aws.Dynamo.get(`Sessions-${process.env.STAGE}`, `Sessions-${process.env.STAGE}`);
+console.log("app stage:", $app.stage);
+const stage = $app.stage || "qa";
+let usersTable: any//sst.aws.Dynamo.get(`Users-${stage}`, `Users-${stage}`);
+let sessionsTable: any//sst.aws.Dynamo.get(`Sessions-${stage}`, `Sessions-${stage}`);
 console.log("Checking for existing DynamoDB tables...");
 console.log("User Table Exists:", usersTable ? usersTable.name : "No");
 console.log("Session Table Exists:", sessionsTable ? sessionsTable.name : "No");
-if(!usersTable){
+if (!usersTable) {
     console.log("Creating Users table as it does not exist.");
-    usersTable = new sst.aws.Dynamo(`Users-${process.env.STAGE}`, {
-        // Removed invalid 'cdk' property
+    usersTable = new sst.aws.Dynamo(`Users-${stage}`, {
         fields: {
             id: "string",
-            access_token_expires_ttl: "number",
+            accessTokenExpiresTtl: "number",
+            username: "string",
+            session_id: "string"
         },
         primaryIndex: { hashKey: "id" },
         globalIndexes: {
-            byExpireAt: { hashKey: "access_token_expires_ttl" } // Assuming a global index on 'access_token_expires_ttl'
+            byaccessTokenExpiresTtl: { hashKey: "accessTokenExpiresTtl" },
+            byusername: { hashKey: "username" },
+            bysession_id: { hashKey: "session_id" }
         },
-        ttl: "access_token_expires_ttl", // Assuming 'access_token_expires_ttl' is the TTL field
-        transform:{
-            table:{
-                name:`Users-${process.env.STAGE}` // Use environment variable for stage
+        ttl: "accessTokenExpiresTtl", // Assuming 'access_token_expires_ttl' is the TTL field
+        transform: {
+            table: {
+                name: `Users-${stage}` // Use environment variable for stage
             }
         }
     });
 }
-if(!sessionsTable){
+if (!sessionsTable) {
     console.log("Creating Sessions table as it does not exist.");
-    sessionsTable = new sst.aws.Dynamo(`Sessions-${process.env.STAGE}`, {
+    sessionsTable = new sst.aws.Dynamo(`Sessions-${stage}`, {
         fields: {
             id: "string",
-            expireAt:"number" // Assuming 'expireAt' is a number field for TTL
+            user_id: "string",
+            expireAt: "string",
+            sessionExpiresTtl: "number"
         },
         primaryIndex: { hashKey: "id" },
         globalIndexes: {
-            byExpireAt: { hashKey: "expireAt" } // Assuming a global index on 'expireAt'
-        }, // Assuming no global indexes are needed, otherwise define them here
-        ttl:"expireAt", // Assuming 'expireAt' is the TTL field
-        transform:{
-            table:{
-                name:`Sessions-${process.env.STAGE}`
+            byuser_id: { hashKey: "user_id" },
+            byexpireAt: { hashKey: "expireAt" },
+            bysessionExpiresTtl: { hashKey: "sessionExpiresTtl" }
+        },
+        ttl: "sessionExpiresTtl",
+        transform: {
+            table: {
+                name: `Sessions-${stage}`
             }
         }
     });
 }
 
 // Create a managed policy for accessing only the specific tables
-export const dynamoDBAccessPolicy = new aws.iam.Policy(`compute-policy-${process.env.STAGE}`, {
-    name: `compute-policy-${process.env.STAGE}`,
+export const dynamoDBAccessPolicy = new aws.iam.Policy(`ssr-uce-compute-policy-${stage}`, {
+    name: `ssr-uce-compute-policy-${stage}`,
     policy: $resolve([(usersTable?.arn ?? ""), (sessionsTable?.arn ?? "")]).apply(([usersTableArn, sessionsTableArn]) => JSON.stringify({
         Version: "2012-10-17",
         Statement: [
@@ -76,10 +82,10 @@ const existingComputeRole: any = undefined;
 console.log("Existing Role:", existingComputeRole ? existingComputeRole : "No existing role found");
 
 let createcomputeRole: aws.iam.Role | undefined = undefined;
-if(!existingComputeRole) {
+if (!existingComputeRole) {
     console.log("Creating new compute role with DynamoDB access policy");
-    createcomputeRole = new aws.iam.Role("compute-role", {
-        name: "compute-role",
+    createcomputeRole = new aws.iam.Role("ssr-uce-compute-role", {
+        name: "ssr-uce-compute-role",
         assumeRolePolicy: JSON.stringify({
             Version: "2012-10-17",
             Statement: [{
@@ -95,9 +101,9 @@ if(!existingComputeRole) {
             dynamoDBAccessPolicy.arn
         ],
     });
-}else{
+} else {
     console.log("Attaching existing role to the DynamoDB access policy");
-    new aws.iam.RolePolicyAttachment(`compute-role-policy-attachment-${process.env.STAGE}`, {
+    new aws.iam.RolePolicyAttachment(`ssr-uce-compute-role-policy-attachment-${stage}`, {
         role: existingComputeRole.name,
         policyArn: dynamoDBAccessPolicy.arn,
     });
