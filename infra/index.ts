@@ -84,8 +84,8 @@ console.log("Existing Role:", existingComputeRole ? existingComputeRole : "No ex
 let createcomputeRole: aws.iam.Role | undefined = undefined;
 if (!existingComputeRole) {
     console.log("Creating new compute role with DynamoDB access policy");
-    createcomputeRole = new aws.iam.Role("ssr-uce-compute-role", {
-        name: "ssr-uce-compute-role",
+    createcomputeRole = new aws.iam.Role(`ssr-uce-compute-role-${stage}`, {
+        name: `ssr-uce-compute-role-${stage}`,
         assumeRolePolicy: JSON.stringify({
             Version: "2012-10-17",
             Statement: [{
