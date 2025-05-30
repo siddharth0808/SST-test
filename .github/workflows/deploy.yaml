@@ -51,4 +51,4 @@ jobs:
 
     - name: Update Amplify App with compute role
       run: |
-          aws amplify update-app --app-id d1elq7oppdpwa6 --branch-name master --compute-role-arn ${{ steps.get-arn.outputs.compute_role_arn }}
+          aws amplify update-branch --app-id d1elq7oppdpwa6 --branch-name master --compute-role-arn ${{ steps.get-arn.outputs.compute_role_arn }}
