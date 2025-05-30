@@ -5,9 +5,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "prod" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "prod" ]
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
 
     env:
       AWS_REGION: us-east-1
-      STAGE: qa
+      STAGE: prod
 
     steps:
     - name: Checkout code
@@ -37,8 +37,8 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Deploy SST to QA
-      run: npx sst deploy --stage qa
+    - name: Deploy SST to PROD
+      run: npx sst deploy --stage prod
     
     - name: Extract ARN and set as output
       id: get-arn
