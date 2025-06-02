@@ -10,7 +10,7 @@ on:
     branches: [ "qa" ]
 
 jobs:
-  build:
+  Deploy-SST-to-QA:
 
     runs-on: ubuntu-latest
 
