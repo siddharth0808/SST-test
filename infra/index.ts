@@ -46,7 +46,7 @@ export const dynamodb_table_sessions = new sst.aws.Dynamo(`Sessions-${stage}`, {
 // Create a managed policy for accessing only the specific tables
 export const dynamoDBAccessPolicy = new aws.iam.Policy(`ssr-uce-compute-policy-${stage}`, {
 	name: `ssr-uce-compute-policy-${stage}`,
-	policy: $resolve([usersTable?.arn ?? '', sessionsTable?.arn ?? '']).apply(
+	policy: $resolve([dynamodb_table_users?.arn ?? '', dynamodb_table_sessions?.arn ?? '']).apply(
 		([usersTableArn, sessionsTableArn]) =>
 			JSON.stringify({
 				Version: '2012-10-17',
